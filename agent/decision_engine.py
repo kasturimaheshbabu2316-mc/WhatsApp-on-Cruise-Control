@@ -35,8 +35,17 @@ except ImportError:
         }
 
 load_dotenv()
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-_CANDIDATES = [MODEL_NAME, "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"]
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+_CANDIDATES = [
+    MODEL_NAME,
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
+    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-3.8-flash",
+]
 FALLBACK_MODELS = list(dict.fromkeys(_CANDIDATES))
 DECISION_LOG_PATH = Path("logs/decision_log.jsonl")
 EXPECTED_LABELS = {"safe_to_auto_reply", "needs_human_money_or_serious"}

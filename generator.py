@@ -23,8 +23,17 @@ except ImportError:
         return []
 
 load_dotenv()
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-_CANDIDATES = [MODEL_NAME, "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"]
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+_CANDIDATES = [
+    MODEL_NAME,
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-2.5-flash",
+    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-3.8-flash",
+]
 FALLBACK_MODELS = list(dict.fromkeys(_CANDIDATES))
 NO_REPLY_FALLBACK = "[no reply generated — check response.candidates for details]"
 
