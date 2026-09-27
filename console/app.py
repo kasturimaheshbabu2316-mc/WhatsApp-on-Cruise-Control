@@ -190,6 +190,26 @@ min_delay = int(current_settings.get("min_delay_seconds", 3))
 max_delay = int(current_settings.get("max_delay_seconds", 12))
 
 with st.sidebar:
+    # --- Live WhatsApp Connection & QR Code Capture ---
+    qr_img_path = Path("qr.png")
+    status_file = Path("logs/connection_status.json")
+    if status_file.exists():
+        try:
+            conn_info = json.loads(status_file.read_text(encoding="utf-8"))
+            if conn_info.get("connected"):
+                st.success(f"🟢 **WhatsApp Connected**\n\n📱 Device: `+{conn_info.get('phone', 'linked')}`")
+            elif qr_img_path.exists():
+                st.markdown("### 📱 Link WhatsApp")
+                st.image(str(qr_img_path), caption="Scan with WhatsApp (Linked Devices)", use_container_width=True)
+                st.info("Point your WhatsApp camera at the QR code above to link.")
+        except Exception:
+            if qr_img_path.exists():
+                st.markdown("### 📱 Link WhatsApp")
+                st.image(str(qr_img_path), caption="Scan with WhatsApp (Linked Devices)", use_container_width=True)
+    elif qr_img_path.exists():
+        st.markdown("### 📱 Link WhatsApp")
+        st.image(str(qr_img_path), caption="Scan with WhatsApp (Linked Devices)", use_container_width=True)
+
     st.markdown("### 🛑 Emergency Control")
     if KILL_SWITCH_PATH.exists():
         st.warning("⚠️ Kill switch is currently ACTIVE.")
@@ -207,6 +227,32 @@ with st.sidebar:
             help="Immediately halts all WhatsApp message processing across Baileys and Bridge",
         ):
             KILL_SWITCH_PATH.write_text("", encoding="utf-8")
+            st.rerun()
+
+    st.markdown("---")
+    st.markdown("### 👥 Allowlisted Contacts")
+    rel_map_file = Path("config/relationship_map.json")
+    rel_map = {}
+    if rel_map_file.exists():
+        try:
+            rel_map = json.loads(rel_map_file.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    
+    allowed_numbers = [k for k, v in rel_map.items() if k != "_default" and v != "unknown"]
+    for num in allowed_numbers:
+        st.caption(f"📞 `+{num}` ({rel_map.get(num, 'friend')})")
+    
+    new_phone = st.text_input("Add Phone to Allowlist", placeholder="e.g. 919876543210")
+    if st.button("➕ Add Number", use_container_width=True):
+        cleaned = "".join(filter(str.isdigit, new_phone))
+        if cleaned:
+            rel_map[cleaned] = "friend"
+            rel_map_file.parent.mkdir(parents=True, exist_ok=True)
+            rel_map_file.write_text(json.dumps(rel_map, indent=2), encoding="utf-8")
+            # also sync root
+            Path("relationship_map.json").write_text(json.dumps(rel_map, indent=2), encoding="utf-8")
+            st.success(f"Added +{cleaned} to allowlist!")
             st.rerun()
 
     st.markdown("---")

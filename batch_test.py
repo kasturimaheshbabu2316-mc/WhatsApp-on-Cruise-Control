@@ -96,7 +96,7 @@ TEST_CASES = [
     },
     {
         "name": "casual friend (weekend plan)",
-        "jid": "144443332255@s.whatsapp.net",
+        "jid": "919812345670@s.whatsapp.net",
         "from_me": False,
         "text": "Want to catch a movie this weekend?",
         "message_type": "text",

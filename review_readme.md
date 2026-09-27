@@ -15,9 +15,9 @@ This document reviews the **WhatsApp on Cruise Control** codebase against all co
 | Milestone | Key Component / File | Purpose | Verification Status |
 | :--- | :--- | :--- | :--- |
 | **Week 1: The Ghostwriter** | [persona/persona.json](persona/persona.json) | User identity, communication rules, Hinglish ratio, tone per relationship | ✅ **Complete & Verified** |
-| **Week 2: The Curator** | [ingestion/parse_export.py](ingestion/parse_export.py)<br>[ingestion/embed_to_chroma.py](ingestion/embed_to_chroma.py)<br>[ingestion/retrieval.py](ingestion/retrieval.py) | Chat parser, turn pair extraction, multilingual embeddings (`paraphrase-multilingual-mpnet-base-v2`), ChromaDB storage | ✅ **Complete & Verified** |
-| **Week 3: The Router** | [agent/router.py](agent/router.py)<br>[agent/decision_engine.py](agent/decision_engine.py) | JID to relationship resolution, multi-stage safety gates (hard rules, signal rules, intent check) | ✅ **Complete & Verified** |
-| **Week 4: The Puppetmaster** | [agent/bridge.py](agent/bridge.py)<br>[whatsapp/baileys_client.js](whatsapp/baileys_client.js)<br>[console/app.py](console/app.py) | Flask Bridge webhook (`POST /process`), Baileys real-time event listener, Streamlit Live Decision Console | ✅ **Complete & Verified** |
+| **Week 2: The Curator** | [ingestion/parse_export.py](ingestion/parse_export.py) • [ingestion/embed_to_chroma.py](ingestion/embed_to_chroma.py) • [ingestion/retrieval.py](ingestion/retrieval.py) | Chat parser, turn pair extraction, multilingual embeddings (`paraphrase-multilingual-mpnet-base-v2`), ChromaDB storage | ✅ **Complete & Verified** |
+| **Week 3: The Router** | [agent/router.py](agent/router.py) • [agent/decision_engine.py](agent/decision_engine.py) | JID to relationship resolution, multi-stage safety gates (hard rules, signal rules, intent check) | ✅ **Complete & Verified** |
+| **Week 4: The Puppetmaster** | [agent/bridge.py](agent/bridge.py) • [whatsapp/baileys_client.js](whatsapp/baileys_client.js) • [console/app.py](console/app.py) | Flask Bridge webhook (`POST /process`), Baileys real-time event listener, Streamlit Live Decision Console | ✅ **Complete & Verified** |
 
 ---
 
@@ -26,13 +26,13 @@ This document reviews the **WhatsApp on Cruise Control** codebase against all co
 ### 1. Multi-Stage Decision Engine ([agent/decision_engine.py](agent/decision_engine.py))
 
 - **Hard Rules (Zero LLM cost)**:
-  - Own messages (`from_me: true`) &rarr; Ignored (`own message`).
-  - Group messages (`@g.us`) &rarr; Ignored (`group chat, not allowlisted`).
-  - Unmapped contacts &rarr; Ignored (`sender not in allowlist`).
+  - Own messages (`from_me: true`) → Ignored (`own message`).
+  - Group messages (`@g.us`) → Ignored (`group chat, not allowlisted`).
+  - Unmapped contacts → Ignored (`sender not in allowlist`).
 - **Signal Rules**:
-  - Media-only messages (`image`, `audio`, `video`) without captions &rarr; Rule-based contextual acknowledgement (`media_ack`) with media-specific copy (bypasses LLM).
-  - Forwarded messages (`is_forwarded: true`) &rarr; Ignored.
-  - Low-signal one-word acknowledgments (`ok`, `k`, `thanks`, `cool`, `nice`) &rarr; Ignored.
+  - Media-only messages (`image`, `audio`, `video`) without captions → Rule-based contextual acknowledgement (`media_ack`) with media-specific copy (bypasses LLM).
+  - Forwarded messages (`is_forwarded: true`) → Ignored.
+  - Low-signal one-word acknowledgments (`ok`, `k`, `thanks`, `cool`, `nice`) → Ignored.
 - **Intent Check**:
   - Uses Gemini 3.8 Flash to classify ambiguous intents; flags money requests, loans, emergency, legal, and sensitive messages for human review.
 
