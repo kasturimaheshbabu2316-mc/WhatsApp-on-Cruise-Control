@@ -88,6 +88,13 @@ def process_message():
     message_type = payload.get("message_type", "text")
     is_forwarded = bool(payload.get("is_forwarded", False))
     from_me = bool(payload.get("from_me", False))
+    if jid.endswith("@newsletter") or jid == "status@broadcast":
+        return jsonify({
+            "should_reply": False,
+            "reply": None,
+            "relationship": "unknown",
+            "reason": "newsletter or status broadcast ignored",
+        })
 
     # 1. Call resolve_relationship(jid) from agent/router.py
     rel_result = resolve_relationship(jid)

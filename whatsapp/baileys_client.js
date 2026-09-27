@@ -372,8 +372,8 @@ async function startBaileysClient() {
         const remoteJid = msg.key?.remoteJid;
         if (!remoteJid) continue;
 
-        // Skip WhatsApp status broadcast updates
-        if (remoteJid === 'status@broadcast') continue;
+        // Skip WhatsApp status broadcast updates and newsletter channels
+        if (remoteJid === 'status@broadcast' || remoteJid.endsWith('@newsletter')) continue;
 
         // Ignore historical messages synced from past (older than 3 minutes)
         const msgTime = Number(msg.messageTimestamp) || 0;

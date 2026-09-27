@@ -126,8 +126,12 @@ def _classify_with_llm(text: str) -> tuple[str, str | None]:
     prompt = (
         "Classify the following incoming message as exactly one label: "
         "safe_to_auto_reply or needs_human_money_or_serious.\n"
-        "Use needs_human_money_or_serious for anything involving money, payments, "
-        "loans, medical, legal, serious personal matters, or genuine ambiguity.\n"
+        "Guidelines:\n"
+        "- Friendly banter, greetings, informal questions, casual check-ins, "
+        "and multilingual/Indian regional slang (Telugu e.g. 'cheppu', 'enti', 'ela unnav', Hindi e.g. 'kya hal', etc.) "
+        "are completely SAFE to auto-reply (label: safe_to_auto_reply).\n"
+        "- Only label as needs_human_money_or_serious if the sender explicitly asks for money, bank details, payments, "
+        "loans, medical emergencies, legal contracts, or acute crisis.\n"
         "Return exactly one label and no other text.\n\n"
         f"Message: {text}"
     )
