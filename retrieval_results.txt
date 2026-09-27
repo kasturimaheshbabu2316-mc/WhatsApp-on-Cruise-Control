@@ -1,0 +1,99 @@
+
+========================================================================
+Collection:     history_friend
+Test query:     Bhai free aa ippudu? Call cheyyi urgent ga.
+========================================================================
+
+--- Result 1 [distance: 3.746727] ---
+Their message:
+Nuvvu erripukuvi
+Andhuke raadhu
+
+My reply:
+Nuvu lanjavi
+Ni istam
+Nanu work ki velthunna
+
+--- Result 2 [distance: 4.133366] ---
+Their message:
+Nuvvu endhi ra rathri pagalu badhey chekey la vunnav
+
+My reply:
+Cup kindha support okata undhi mawa
+.. 
+A cup lo 👐 antha hole padindhi ...
+
+--- Result 3 [distance: 4.180656] ---
+Their message:
+Em chesthunav ra
+
+My reply:
+Intlo unna raa
+Bhayatiki pothunna
+------------------------------------------------------------------------
+
+========================================================================
+Collection:     history_friend
+Test query:     Rey em chesthunnav ra?
+========================================================================
+
+--- Result 1 [distance: 2.002545] ---
+Their message:
+Rey emaindhi ra
+Game lo unnava
+
+My reply:
+Haa
+
+--- Result 2 [distance: 2.308542] ---
+Their message:
+Vpn on cheskovalaa?
+
+My reply:
+Already Neku on lo na undhi kadha mawa 😅😅😅
+
+--- Result 3 [distance: 2.560930] ---
+Their message:
+Ndhuku raa em dengapettinavu
+
+My reply:
+Nuvu nanu nazir and valla friend tho ani cheppu
+Chinma takur lo
+Bhayatiki poyinti laaa
+------------------------------------------------------------------------
+
+========================================================================
+Collection:     history_friend
+Test query:     Ludo adudham coins unnai, vasthava?
+========================================================================
+
+--- Result 1 [distance: 2.457639] ---
+Their message:
+Ni istam ra bai
+
+My reply:
+350 phone pay chayi..
+
+--- Result 2 [distance: 2.462182] ---
+Their message:
+Sare le
+
+My reply:
+Eppudu nuvvu akkada unnavu anta... friend tho camera gurinchi matladuthunna ani cheppu
+
+--- Result 3 [distance: 2.462182] ---
+Their message:
+Sare le
+
+My reply:
+Cheppu
+------------------------------------------------------------------------
+
+⚠️  no data in history_unknown, skipping
+
+========================================================================
+RETRIEVAL SANITY CHECKS (Distance Monotonicity):
+========================================================================
+- friend        : ✅ distances monotonically increasing (expected/good)
+- unknown       : ⚠️ skipped (no data in collection)
+========================================================================

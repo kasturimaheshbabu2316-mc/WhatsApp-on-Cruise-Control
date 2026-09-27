@@ -1,0 +1,67 @@
+{
+  "hinglish_ratio_percent": 0.0,
+  "average_message_length_words": 3.49,
+  "top_emojis": [
+    {
+      "emoji": "😅",
+      "frequency": 15
+    },
+    {
+      "emoji": "😎",
+      "frequency": 6
+    },
+    {
+      "emoji": "🔥",
+      "frequency": 6
+    },
+    {
+      "emoji": "🙄",
+      "frequency": 5
+    },
+    {
+      "emoji": "🤫",
+      "frequency": 4
+    },
+    {
+      "emoji": "🤯",
+      "frequency": 4
+    },
+    {
+      "emoji": "😂",
+      "frequency": 3
+    },
+    {
+      "emoji": "🎉",
+      "frequency": 2
+    },
+    {
+      "emoji": "🫣",
+      "frequency": 2
+    },
+    {
+      "emoji": "🤩",
+      "frequency": 2
+    },
+    {
+      "emoji": "🌹",
+      "frequency": 1
+    },
+    {
+      "emoji": "🤣",
+      "frequency": 1
+    },
+    {
+      "emoji": "🎈",
+      "frequency": 1
+    },
+    {
+      "emoji": "🥳",
+      "frequency": 1
+    },
+    {
+      "emoji": "👐",
+      "frequency": 1
+    }
+  ],
+  "total_sample_size": 285
+}
