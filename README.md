@@ -1,4 +1,5 @@
 # 🚗 Put Your WhatsApp on Cruise Control
+>
 > **Hands-Free Replies by an AI Agent using Two-Brain RAG & Baileys**
 
 An autonomous personal WhatsApp AI agent trained on your own chats that replies in your exact style: tone, Hinglish/slang, brevity, and relationship-specific communication rules.
@@ -8,6 +9,7 @@ An autonomous personal WhatsApp AI agent trained on your own chats that replies 
 ## 🧠 Architecture Overview
 
 The system uses a **Two-Brain Architecture** combined with deterministic safety gates:
+
 1. **Persona Brain**: Represents who you are when texting (identity, tone, slang, emoji frequency per relationship).
 2. **History Brain**: ChromaDB vector store indexing your real past WhatsApp conversation turns (`they said X` $\rightarrow$ `I replied Y`).
 
@@ -32,6 +34,7 @@ flowchart LR
 ```
 
 ### 8 Pipeline Stages
+
 1. **Message In**: Real incoming WhatsApp message captured via Baileys.
 2. **Router**: Deterministic lookup table matching phone number to relationship (`friend`, `family`, `professional`, `group`, `unknown`).
 3. **Decision Engine**: Layered checks:
@@ -60,11 +63,13 @@ flowchart LR
 ## 🚀 Quickstart Guide
 
 ### 1. Prerequisites
+
 - Python 3.10+
 - Node.js 18+
 - Gemini API Key ([Google AI Studio](https://aistudio.google.com/))
 
 ### 2. Setup Environment
+
 ```bash
 # Clone the repository
 git clone https://github.com/kasturimaheshbabu2316-mc/WhatsApp-on-Cruise-Control.git
@@ -78,7 +83,9 @@ npm install
 ```
 
 ### 3. Configure `.env`
+
 Create a `.env` file in the project root:
+
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-3.8-flash
@@ -87,21 +94,27 @@ GEMINI_MODEL=gemini-3.8-flash
 ### 4. Run the Pipeline
 
 #### Terminal 1: Start Flask Bridge
+
 ```bash
 python bridge.py
 ```
+
 *Listens on `http://localhost:5001` and connects the Router, Decision Engine, ChromaDB, and Persona Generator.*
 
 #### Terminal 2: Start Streamlit Dashboard
+
 ```bash
 python -m streamlit run app.py
 ```
+
 *Opens interactive Cruise Control Console at `http://localhost:8501` featuring the live decision stream, simulator, safety test suite, and ChromaDB retrieval inspector.*
 
 #### Terminal 3: Connect Live WhatsApp
+
 ```bash
 node baileys_client.js
 ```
+
 *Scans QR code using a secondary WhatsApp account (**Settings → Linked Devices → Link a Device**). All incoming messages will be processed and logged in real-time.*
 
 ---
@@ -109,6 +122,7 @@ node baileys_client.js
 ## ⚙️ Operating Modes
 
 Controlled dynamically via `config/mode.txt` or through the Streamlit UI toggle:
+
 - `DRY_RUN`: Simulates and logs all pipeline steps without sending real WhatsApp messages. (Default)
 - `LIVE`: Actively dispatches autonomous WhatsApp replies to senders.
 
@@ -117,6 +131,7 @@ Controlled dynamically via `config/mode.txt` or through the Streamlit UI toggle:
 ## 🧪 Testing
 
 Run automated unit and integration tests:
+
 ```bash
 python -m pytest test_bridge.py
 python -m pytest agent/test_router.py
@@ -126,7 +141,7 @@ python -m pytest agent/test_router.py
 
 ## 📁 Repository Structure
 
-```
+```text
 WhatsApp on Cruise Control/
 ├── agent/
 │   ├── decision_engine.py    # Multi-layered safety gates & intent classification
