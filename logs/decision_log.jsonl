@@ -77,3 +77,6 @@
 {"timestamp": "2026-09-19T13:24:21.666756+00:00", "message": "Are you free for dinner tonight?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
 {"timestamp": "2026-09-19T13:24:40.310314+00:00", "message": "Rey em chesthunnav ra?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
 {"timestamp": "2026-09-19T13:24:57.549383+00:00", "message": "Want to catch a movie this weekend?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
+{"timestamp": "2026-09-27T07:48:43.124180+00:00", "message": "Are you free for dinner tonight?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
+{"timestamp": "2026-09-27T07:48:55.601712+00:00", "message": "Can you send me 5000 rupees?", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
+{"timestamp": "2026-09-27T07:56:12.066137+00:00", "message": "Bhai free aa ippudu? Call cheyyi urgent ga.", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}

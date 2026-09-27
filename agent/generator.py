@@ -22,11 +22,10 @@ except ImportError:
     def retrieve_similar(relationship: str, incoming_message: str, k: int = 3) -> list[dict]:
         return []
 
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-FALLBACK_MODELS = [MODEL_NAME, "gemini-2.5-flash", "gemini-2.0-flash"]
-NO_REPLY_FALLBACK = "[no reply generated — check response.candidates for details]"
-
 load_dotenv()
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+FALLBACK_MODELS = [MODEL_NAME, "gemini-2.0-flash", "gemini-1.5-flash"]
+NO_REPLY_FALLBACK = "[no reply generated — check response.candidates for details]"
 
 
 def _get_genai_client() -> genai.Client | None:

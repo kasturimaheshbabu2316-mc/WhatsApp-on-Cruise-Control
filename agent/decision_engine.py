@@ -32,12 +32,11 @@ except ImportError:
             "nice",
         }
 
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-FALLBACK_MODELS = [MODEL_NAME, "gemini-2.5-flash", "gemini-2.0-flash"]
+load_dotenv()
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+FALLBACK_MODELS = [MODEL_NAME, "gemini-2.0-flash", "gemini-1.5-flash"]
 DECISION_LOG_PATH = Path("logs/decision_log.jsonl")
 EXPECTED_LABELS = {"safe_to_auto_reply", "needs_human_money_or_serious"}
-
-load_dotenv()
 
 
 def _log_decision(
