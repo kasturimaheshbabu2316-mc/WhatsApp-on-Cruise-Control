@@ -646,10 +646,19 @@ elif nav_option == "🧠 Two-Brain Architecture":
             st.metric("Group Avg Message Length", f"{group_signals.get('avg_message_length_words', 3.49)} words")
             
             st.markdown("#### 🎨 Top Emojis Extracted")
+            def _extract_emojis(data):
+                res = []
+                for item in (data or []):
+                    if isinstance(item, dict):
+                        res.append(item.get("emoji", ""))
+                    elif isinstance(item, str):
+                        res.append(item)
+                return " ".join([e for e in res[:8] if e])
+
             top_emojis_friend = friend_signals.get("top_emojis", ["🙄", "😳", "🖕", "🤦", "🍺"])
-            st.markdown(" **Friend (D.N.K):** " + " ".join(top_emojis_friend[:6]))
+            st.markdown(" **Friend (D.N.K):** " + _extract_emojis(top_emojis_friend))
             top_emojis_group = group_signals.get("top_emojis", ["😅", "😎", "🔥", "🙄", "🤫"])
-            st.markdown(" **Group (The BOYS):** " + " ".join(top_emojis_group[:6]))
+            st.markdown(" **Group (The BOYS):** " + _extract_emojis(top_emojis_group))
 
         with st.expander("📄 View Raw persona.json"):
             st.json(persona_data)
