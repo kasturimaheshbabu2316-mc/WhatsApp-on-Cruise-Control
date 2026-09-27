@@ -27,5 +27,8 @@ yarn-error.log*
 
 # WhatsApp Baileys credentials & session
 auth_info_baileys/
+auth_into_baileys/
 .baileys_store*
 
+# Application logs
+logs/

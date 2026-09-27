@@ -106,3 +106,6 @@
 {"timestamp": "2026-09-27T08:57:00.541446+00:00", "message": "Hello there", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}
 {"timestamp": "2026-09-27T08:57:00.546544+00:00", "message": "Hey what's up", "relationship": "friend", "decision": "ignore", "reason": "own message"}
 {"timestamp": "2026-09-27T08:57:07.449913+00:00", "message": "Send me 50000 rupees emergency loan please", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
+{"timestamp": "2026-09-27T10:29:06.221976+00:00", "message": "Hello there", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}
+{"timestamp": "2026-09-27T10:29:06.227983+00:00", "message": "Hey what's up", "relationship": "friend", "decision": "ignore", "reason": "own message"}
+{"timestamp": "2026-09-27T10:29:09.371025+00:00", "message": "Send me 50000 rupees emergency loan please", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
