@@ -127,7 +127,7 @@ async function sendToBridge(payload) {
   try {
     const response = await axios.post(BRIDGE_URL, payload, {
       headers: { 'Content-Type': 'application/json' },
-      timeout: 30000,
+      timeout: 45000,
     });
     logger.info({ status: response.status }, '[DECISION] bridge response received');
     return response.data;
@@ -136,6 +136,7 @@ async function sendToBridge(payload) {
     return null;
   }
 }
+
 
 async function connectToWhatsApp() {
   if (startupInProgress) {

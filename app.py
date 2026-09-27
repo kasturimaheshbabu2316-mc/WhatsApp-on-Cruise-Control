@@ -391,7 +391,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.info("💡 **Model**: `gemini-2.5-flash`\n\n🧠 **Embeddings**: `paraphrase-multilingual-mpnet-base-v2`")
+    st.info("💡 **Model**: `gemini-3.8-flash` (with automated fallbacks)\n\n🧠 **Embeddings**: `paraphrase-multilingual-mpnet-base-v2`")
 
     st.markdown("---")
     st.caption("Built with Google GenAI SDK & Streamlit")
@@ -444,10 +444,11 @@ if nav_option == "🔴 Live WhatsApp Decision Feed":
                         data=test_payload,
                         headers={"Content-Type": "application/json"},
                     )
-                    with urllib.request.urlopen(req, timeout=20) as res:
+                    with urllib.request.urlopen(req, timeout=35) as res:
                         res_data = json.loads(res.read().decode("utf-8"))
                         st.success(f"Bridge reply: {res_data.get('reply') or 'Ignored'}")
                     st.rerun()
+
                 except Exception as e:
                     st.error(f"Bridge ping failed: {e}. Is `python bridge.py` running?")
         with btn_c2:
