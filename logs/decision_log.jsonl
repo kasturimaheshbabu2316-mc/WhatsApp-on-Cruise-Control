@@ -98,3 +98,7 @@
 {"timestamp": "2026-09-27T08:06:47.697354+00:00", "message": "thanks", "relationship": "friend", "decision": "ignore", "reason": "low-signal ack, no reply needed"}
 {"timestamp": "2026-09-27T08:06:49.926788+00:00", "message": "Can you send me 5000 rupees?", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
 {"timestamp": "2026-09-27T08:06:52.846829+00:00", "message": "Are you free for dinner tonight?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
+{"timestamp": "2026-09-27T08:41:35.461651+00:00", "message": "Are you free for dinner tonight?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
+{"timestamp": "2026-09-27T08:46:03.286384+00:00", "message": "Hello who is this?", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}
+{"timestamp": "2026-09-27T08:46:06.158134+00:00", "message": "Can you send me 10000 rupees urgently?", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
+{"timestamp": "2026-09-27T08:48:37.721352+00:00", "message": "Bhai repu kaludhaama?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}

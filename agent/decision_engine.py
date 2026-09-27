@@ -33,10 +33,12 @@ except ImportError:
         }
 
 load_dotenv()
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-FALLBACK_MODELS = [MODEL_NAME, "gemini-2.0-flash", "gemini-1.5-flash"]
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+_CANDIDATES = [MODEL_NAME, "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"]
+FALLBACK_MODELS = list(dict.fromkeys(_CANDIDATES))
 DECISION_LOG_PATH = Path("logs/decision_log.jsonl")
 EXPECTED_LABELS = {"safe_to_auto_reply", "needs_human_money_or_serious"}
+
 
 
 def _log_decision(
@@ -103,11 +105,11 @@ def _classify_with_llm(text: str) -> tuple[str, str | None]:
             last_error = error
             err_str = str(error)
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str:
-                time.sleep(1.0)
-                continue
-            return "needs_human_money_or_serious", f"LLM error: {error}"
+                time.sleep(0.5)
+            continue
     else:
         return "needs_human_money_or_serious", f"LLM error: {last_error}"
+
 
     if raw_response in EXPECTED_LABELS:
         return raw_response, None

@@ -17,6 +17,11 @@ import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 
+try:
+    from streamlit_autorefresh import st_autorefresh
+except ImportError:
+    st_autorefresh = None
+
 # Set root directory in sys.path
 ROOT_DIR = Path(__file__).resolve().parent
 if str(ROOT_DIR) not in sys.path:
@@ -24,6 +29,10 @@ if str(ROOT_DIR) not in sys.path:
 
 # Ensure environment variables are loaded
 load_dotenv()
+
+CONSOLE_FEED_PATH = ROOT_DIR / "logs" / "console_feed.jsonl"
+MODE_PATH = ROOT_DIR / "config" / "mode.txt"
+
 
 # Streamlit Page Config
 st.set_page_config(
@@ -289,6 +298,48 @@ from agent.decision_engine import should_reply
 from agent.generator import generate_reply
 from agent.router import resolve_relationship
 
+
+def read_operating_mode() -> str:
+    try:
+        text = MODE_PATH.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return "DRY_RUN"
+    val = text.upper().strip()
+    return val if val in {"DRY_RUN", "LIVE"} else "DRY_RUN"
+
+
+def set_operating_mode(mode: str) -> None:
+    MODE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    MODE_PATH.write_text(mode.strip().upper() + "\n", encoding="utf-8")
+
+
+def load_console_logs(limit: int = 50) -> list[dict]:
+    if not CONSOLE_FEED_PATH.exists():
+        return []
+    entries = []
+    with CONSOLE_FEED_PATH.open("r", encoding="utf-8") as f:
+        for line in f:
+            raw = line.strip()
+            if not raw:
+                continue
+            try:
+                item = json.loads(raw)
+                if isinstance(item, dict):
+                    entries.append(item)
+            except Exception:
+                continue
+    return entries[-limit:][::-1]
+
+
+def check_bridge_status() -> bool:
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://localhost:5001/health", timeout=0.8) as res:
+            return res.status == 200
+    except Exception:
+        return False
+
+
 # Sidebar Configuration & Diagnostics
 with st.sidebar:
     st.markdown("## 🚗 WhatsApp on Cruise Control")
@@ -298,6 +349,7 @@ with st.sidebar:
     nav_option = st.radio(
         "Navigation",
         [
+            "🔴 Live WhatsApp Decision Feed",
             "💬 Live Auto-Reply Simulator",
             "🧪 Batch Safety Test Suite",
             "🧠 Two-Brain Architecture",
@@ -309,7 +361,13 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### 🔍 System Diagnostics")
-    
+
+    # Check Bridge
+    if check_bridge_status():
+        st.success("🟢 Flask Bridge: Connected (Port 5001)")
+    else:
+        st.caption("⚪ Flask Bridge: Offline (`python bridge.py`)")
+
     # Check Gemini API Key
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if api_key:
@@ -325,17 +383,156 @@ with st.sidebar:
     except Exception as e:
         st.warning(f"🟡 ChromaDB Status: {e}")
 
+    # Mode in sidebar
+    curr_op_mode = read_operating_mode()
+    mode_badge_color = "#f59e0b" if curr_op_mode == "DRY_RUN" else "#22c55e"
+    st.markdown(
+        f"**Active Mode:** <span style='background: {mode_badge_color}22; color: {mode_badge_color}; padding: 3px 8px; border-radius: 6px; font-weight: 600;'>{curr_op_mode}</span>",
+        unsafe_allow_html=True,
+    )
+
     st.info("💡 **Model**: `gemini-2.5-flash`\n\n🧠 **Embeddings**: `paraphrase-multilingual-mpnet-base-v2`")
-    
+
     st.markdown("---")
     st.caption("Built with Google GenAI SDK & Streamlit")
 
 
 # ==============================================================================
+# TAB 0: LIVE DECISION FEED & CONSOLE (WEEK 4 PUPPETMASTER)
+# ==============================================================================
+if nav_option == "🔴 Live WhatsApp Decision Feed":
+    if st_autorefresh is not None:
+        st_autorefresh(interval=2000, key="console_feed_autorefresh")
+
+    st.title("🔴 Live WhatsApp Decision Feed & Cruise Control Console")
+    st.markdown(
+        "Live autonomous decision stream receiving incoming messages via **Baileys WhatsApp Client** "
+        "and processing them through the **Flask Bridge API**."
+    )
+
+    curr_mode = read_operating_mode()
+    col_mode, col_actions = st.columns([2, 3])
+    with col_mode:
+        selected_mode = st.radio(
+            "Cruise Control Mode",
+            ["DRY_RUN", "LIVE"],
+            index=0 if curr_mode == "DRY_RUN" else 1,
+            horizontal=True,
+            help="DRY_RUN: Simulate & log without sending actual WhatsApp messages. LIVE: Dispatches real replies via WhatsApp.",
+        )
+        if selected_mode != curr_mode:
+            set_operating_mode(selected_mode)
+            st.success(f"Mode set to {selected_mode}")
+            st.rerun()
+
+    with col_actions:
+        btn_c1, btn_c2 = st.columns(2)
+        with btn_c1:
+            if st.button("🚀 Ping Bridge with Test Message", use_container_width=True):
+                import json
+                import urllib.request
+                try:
+                    test_payload = json.dumps({
+                        "jid": "919812345670@s.whatsapp.net",
+                        "text": "Are you free for coffee later?",
+                        "message_type": "text",
+                        "is_forwarded": False,
+                        "from_me": False,
+                    }).encode("utf-8")
+                    req = urllib.request.Request(
+                        "http://localhost:5001/process",
+                        data=test_payload,
+                        headers={"Content-Type": "application/json"},
+                    )
+                    with urllib.request.urlopen(req, timeout=20) as res:
+                        res_data = json.loads(res.read().decode("utf-8"))
+                        st.success(f"Bridge reply: {res_data.get('reply') or 'Ignored'}")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Bridge ping failed: {e}. Is `python bridge.py` running?")
+        with btn_c2:
+            if st.button("🧹 Clear Feed History", use_container_width=True):
+                if CONSOLE_FEED_PATH.exists():
+                    CONSOLE_FEED_PATH.write_text("", encoding="utf-8")
+                st.rerun()
+
+    st.markdown("---")
+
+    # Metrics
+    logs = load_console_logs(limit=50)
+    total_msgs = len(logs)
+    replies_count = sum(1 for e in logs if str(e.get("decision", "")).lower() == "reply")
+    ignored_count = total_msgs - replies_count
+
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        st.metric("Messages Streamed", total_msgs)
+    with m2:
+        st.metric("Automated Replies", replies_count)
+    with m3:
+        st.metric("Safe Ignores", ignored_count)
+    with m4:
+        st.metric("Operating Policy", curr_mode)
+
+    if not logs:
+        st.info("⏳ Waiting for incoming WhatsApp messages... Start `python bridge.py` and `node baileys_client.js`, or click **Ping Bridge with Test Message** above!")
+    else:
+        st.markdown("### 📋 Live Stream Events")
+        for entry in logs:
+            timestamp = entry.get("timestamp", "unknown")
+            jid = entry.get("jid", "unknown")
+            incoming_text = entry.get("text", "")
+            relationship = str(entry.get("relationship", "unknown")).lower()
+            decision = str(entry.get("decision", "ignore")).lower()
+            reason = entry.get("reason", "no reason provided")
+            reply = entry.get("reply")
+            retrieval_trace = entry.get("retrieval_trace") or []
+
+            with st.container():
+                st.markdown(
+                    f"""
+                    <div style="background: #111b21; border: 1px solid #222e35; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div>
+                                <span style="color: #8696a0; font-size: 13px;">🕒 {timestamp}</span>
+                                <span style="margin-left: 12px; color: #53bdeb; font-weight: 600; font-size: 13px;">👤 {jid}</span>
+                            </div>
+                            <div>
+                                <span class="badge-neutral" style="margin-right: 8px;">{relationship.upper()}</span>
+                                <span class="{'badge-approved' if decision == 'reply' else 'badge-ignored'}">{'🟢 REPLY' if decision == 'reply' else '⚪ IGNORED'}</span>
+                            </div>
+                        </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                if incoming_text:
+                    st.markdown(f"**Incoming:** `{incoming_text}`")
+                st.markdown(f"**Gate Reason:** *{reason}*")
+
+                if reply:
+                    st.markdown("**Generated In-Character Reply:**")
+                    st.success(reply)
+
+                if retrieval_trace and isinstance(retrieval_trace, list):
+                    with st.expander(f"🔍 ChromaDB Retrieval Trace ({len(retrieval_trace)} historical pairs)"):
+                        for idx, item in enumerate(retrieval_trace, start=1):
+                            if isinstance(item, dict):
+                                past_msg = item.get("their_message") or item.get("text") or ""
+                                past_rep = item.get("my_reply") or item.get("reply") or ""
+                                dist = item.get("distance")
+                                dist_str = f"{dist:.4f}" if isinstance(dist, (int, float)) else "N/A"
+                                st.markdown(f"**Match #{idx}** (Distance: `{dist_str}`)")
+                                st.code(f"They: {past_msg}\nMe:   {past_rep}", language="text")
+
+                st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ==============================================================================
 # TAB 1: LIVE SIMULATOR
 # ==============================================================================
-if nav_option == "💬 Live Auto-Reply Simulator":
+elif nav_option == "💬 Live Auto-Reply Simulator":
     st.title("💬 WhatsApp Live Simulator & Auto-Reply Pipeline")
+
     st.markdown(
         "Simulate an incoming WhatsApp message and watch the **Router**, **Safety Gates**, "
         "**ChromaDB Vector Retrieval**, and **Persona Brain** make an authentic autonomous decision."

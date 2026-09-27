@@ -24,3 +24,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# WhatsApp Baileys credentials & session
+auth_info_baileys/
+.baileys_store*
+

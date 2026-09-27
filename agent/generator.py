@@ -23,9 +23,11 @@ except ImportError:
         return []
 
 load_dotenv()
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-FALLBACK_MODELS = [MODEL_NAME, "gemini-2.0-flash", "gemini-1.5-flash"]
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+_CANDIDATES = [MODEL_NAME, "gemini-3.8-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-flash-latest"]
+FALLBACK_MODELS = list(dict.fromkeys(_CANDIDATES))
 NO_REPLY_FALLBACK = "[no reply generated — check response.candidates for details]"
+
 
 
 def _get_genai_client() -> genai.Client | None:
@@ -109,16 +111,16 @@ def generate_reply(incoming_text: str, relationship: str) -> str:
             response = client.models.generate_content(model=model_candidate, contents=prompt)
             if response and response.text:
                 reply = response.text.strip()
-                return reply if reply else NO_REPLY_FALLBACK
-            return NO_REPLY_FALLBACK
+                if reply:
+                    return reply
         except Exception as e:
             last_error = e
             err_str = str(e)
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str or "503" in err_str:
-                time.sleep(1.0)
-                continue
-            return f"[no reply generated — error: {e}]"
+                time.sleep(0.5)
+            continue
     return f"[no reply generated — error: {last_error}]"
+
 
 
 if __name__ == "__main__":
