@@ -109,3 +109,12 @@
 {"timestamp": "2026-09-27T10:29:06.221976+00:00", "message": "Hello there", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}
 {"timestamp": "2026-09-27T10:29:06.227983+00:00", "message": "Hey what's up", "relationship": "friend", "decision": "ignore", "reason": "own message"}
 {"timestamp": "2026-09-27T10:29:09.371025+00:00", "message": "Send me 50000 rupees emergency loan please", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
+{"timestamp": "2026-09-27T10:40:47.318374+00:00", "message": "", "relationship": "friend", "decision": "reply", "reason": "media_ack", "reply": "Got your image, will look at it properly and get back to you 🙂"}
+{"timestamp": "2026-09-27T10:40:47.320469+00:00", "message": "", "relationship": "friend", "decision": "reply", "reason": "media_ack", "reply": "Got your voice note, will look at it properly and get back to you 🙂"}
+{"timestamp": "2026-09-27T10:40:47.320873+00:00", "message": "", "relationship": "friend", "decision": "reply", "reason": "media_ack", "reply": "Got your video, will look at it properly and get back to you 🙂"}
+{"timestamp": "2026-09-27T10:40:47.321200+00:00", "message": "", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}
+{"timestamp": "2026-09-27T10:40:47.321521+00:00", "message": "", "relationship": "group", "decision": "ignore", "reason": "group chat, not allowlisted"}
+{"timestamp": "2026-09-27T10:40:47.321885+00:00", "message": "", "relationship": "friend", "decision": "ignore", "reason": "own message"}
+{"timestamp": "2026-09-27T10:41:20.298782+00:00", "message": "", "relationship": "friend", "decision": "reply", "reason": "media_ack", "reply": "Got your image, will look at it properly and get back to you 🙂"}
+{"timestamp": "2026-09-27T10:41:20.301492+00:00", "message": "", "relationship": "friend", "decision": "reply", "reason": "media_ack", "reply": "Got your voice note, will look at it properly and get back to you 🙂"}
+{"timestamp": "2026-09-27T10:41:20.303264+00:00", "message": "", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}

@@ -1,28 +1,38 @@
-# 🚗 Put Your WhatsApp on Cruise Control
->
-> **Hands-Free Replies by an AI Agent using Two-Brain RAG & Baileys**
+# 🚗 WhatsApp on Cruise Control
 
-An autonomous personal WhatsApp AI agent trained on your own chats that replies in your exact style: tone, Hinglish/slang, brevity, and relationship-specific communication rules.
+> **Hands-Free Autonomous Replies by a Retrieval-Grounded Persona Agent**
+
+WhatsApp on Cruise Control is a retrieval-grounded WhatsApp persona agent, not a generic chatbot. It combines a persona prompt ("who you are") with a ChromaDB vector store of your actual past conversations ("how you reply") to synthesize authentic, in-character responses. Before speaking, the agent evaluates every message through multi-layered safety gates, intent checks, and an independent allowlist to ensure it only replies when appropriate.
 
 ---
 
-## 🧠 Architecture Overview
+## ⚠️ USE RESPONSIBLY
 
-The system uses a **Two-Brain Architecture** combined with deterministic safety gates:
+> [!CAUTION]
+> **Safety & Terms of Service Guidelines**
+>
+> - **Terms of Service**: Baileys automates WhatsApp Web protocol, which is against WhatsApp's official Terms of Service.
+> - **Dedicated Number Required**: Run this project **only on a dedicated or secondary WhatsApp number** — **never** link your primary personal or critical business number.
+> - **Consent**: Reply only to consenting contacts (friends, family, or test contacts who have explicitly agreed to test your agent).
+> - **Rate & Volume Limits**: Keep message volume low and maintain randomized human-like delays (minimum 3–12 seconds).
+> - **Ban Risk**: Aggressive, bulk, or unattended automation can result in your WhatsApp account being permanently banned by WhatsApp anti-spam systems.
 
-1. **Persona Brain**: Represents who you are when texting (identity, tone, slang, emoji frequency per relationship).
-2. **History Brain**: ChromaDB vector store indexing your real past WhatsApp conversation turns (`they said X` $\rightarrow$ `I replied Y`).
+---
+
+## 🧠 Two-Brain Architecture
+
+The agent operates on an 8-stage pipeline separating tone and identity from conversational memory:
 
 ```mermaid
 flowchart LR
-    A["📨 WhatsApp In"] --> B["🔀 Router<br/>(Phone → Relationship)"]
+    A["📨 WhatsApp In"] --> B["🔀 Router<br/>(Lookup JID → Relationship)"]
     B --> C["🛡️ Decision Engine<br/>(Safety Gates & Intent)"]
-    C -->|Ignored| D["⚪ Silent / No Reply"]
+    C -->|Ignored| D["⚪ Silent / Ignored"]
     C -->|Approved| E["🔍 ChromaDB Retrieval<br/>(History Brain)"]
     E --> F["🧬 Persona Injection<br/>(Persona Brain)"]
     F --> G["⚡ Generation<br/>(Gemini 3.8 Flash)"]
-    G --> H["⏳ Human-like Delay<br/>(3–8 sec)"]
-    H --> I["🚀 Send Reply<br/>(Baileys Client)"]
+    G --> H["⏳ Human-like Delay<br/>(3–12s Settings)"]
+    H --> I["🚀 Dispatch Reply<br/>(Baileys Client)"]
 
     style B fill:#374151,stroke:#6b7280,color:#fff
     style C fill:#374151,stroke:#6b7280,color:#fff
@@ -33,108 +43,143 @@ flowchart LR
     style I fill:#047857,stroke:#059669,color:#fff
 ```
 
-### 8 Pipeline Stages
+### Pipeline Overview
 
-1. **Message In**: Real incoming WhatsApp message captured via Baileys.
-2. **Router**: Deterministic lookup table matching phone number to relationship (`friend`, `family`, `professional`, `group`, `unknown`).
-3. **Decision Engine**: Layered checks:
-   - *Hard Rules*: Ignore own messages, unknown senders, un-allowlisted groups.
-   - *Signal Rules*: Ignore empty media, forwarded content, and single-word acknowledgments (`ok`, `cool`, `thanks`).
-   - *Intent Check*: Gemini AI classifier flags sensitive queries (money, payments, serious emergencies) to ensure safe human-in-the-loop handling.
-4. **Retrieval (History Brain)**: Queries `history_<relationship>` in ChromaDB for top-3 semantically similar dialogue turns using `paraphrase-multilingual-mpnet-base-v2`.
-5. **Persona Injection (Persona Brain)**: Merges relationship tone and communication rules into the system prompt.
-6. **Generation**: `gemini-3.8-flash` synthesizes an authentic reply matching the retrieved examples and user tone.
-7. **Human-like Delay**: Waits 3–8 seconds before sending so replies feel natural rather than robotic.
-8. **Send**: Dispatches the final message over WhatsApp via Baileys.
-
----
-
-## 🛠️ Tech Stack
-
-- **AI Model**: Google Gemini API (`gemini-3.8-flash`) via `google-genai`
-- **Vector Database**: ChromaDB (persistent local vector store)
-- **Embeddings**: `sentence-transformers` (`paraphrase-multilingual-mpnet-base-v2`)
-- **Backend Bridge**: Python Flask API (`bridge.py`)
-- **WhatsApp Web Client**: Node.js `@whiskeysockets/baileys` (`baileys_client.js`)
-- **Dashboard & Console**: Streamlit (`app.py`, `console.py`)
+1. **Message In**: Real incoming WhatsApp messages captured in real time via Baileys (`messages.upsert` with `type: "notify"`).
+2. **Router**: Deterministic table lookup ([config/relationship_map.json](config/relationship_map.json)) mapping contacts to `friend`, `family`, `professional`, `group`, or `unknown`.
+3. **Decision Engine**: Multi-stage safety checks:
+   - *Hard Rules*: Ignore own messages, unknown senders, and unallowlisted group chats.
+   - *Signal Rules*: Acknowledge media-only items (`image`, `audio`, `video`) with contextual rule-based acks; ignore forwards and single-word acknowledgments.
+   - *Guarded Intent Check*: Fast LLM classification guards against money requests, loans, medical, legal, or ambiguous queries.
+4. **ChromaDB Retrieval (History Brain)**: Queries `history_<relationship>` in ChromaDB for top-3 semantically similar dialogue pairs using multilingual embeddings (`paraphrase-multilingual-mpnet-base-v2`).
+5. **Persona Injection (Persona Brain)**: Injects authentic speech patterns, slang, Hinglish frequency, and relationship tone from [persona/persona.json](persona/persona.json).
+6. **Generation**: Google Gemini (`gemini-3.8-flash`) synthesizes an authentic reply adhering to persona constraints and past conversation examples.
+7. **Configurable Delay**: Pauses for a randomized interval (`min_delay_seconds` to `max_delay_seconds`) to emulate human typing pacing.
+8. **Dispatch**: Independent allowlist verification before sending the message over WhatsApp via Baileys.
 
 ---
 
-## 🚀 Quickstart Guide
+## 🚀 Setup Instructions
 
-### 1. Prerequisites
+Follow these setup steps in order:
 
-- Python 3.10+
-- Node.js 18+
-- Gemini API Key ([Google AI Studio](https://aistudio.google.com/))
-
-### 2. Setup Environment
-
-```bash
-# Clone the repository
-git clone https://github.com/kasturimaheshbabu2316-mc/WhatsApp-on-Cruise-Control.git
-cd "WhatsApp on Cruise Control"
-
-# Install Python dependencies
-pip install -r requirements.txt # or install flask streamlit chromadb sentence-transformers google-genai pytest streamlit-autorefresh
-
-# Install Node.js dependencies
-npm install
-```
-
-### 3. Configure `.env`
+### 1. Environment Configuration
 
 Create a `.env` file in the project root:
 
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_google_gemini_api_key_here
 GEMINI_MODEL=gemini-3.8-flash
 ```
 
-### 4. Run the Pipeline
+*(Get your free API key at [aistudio.google.com](https://aistudio.google.com/)).*
 
-#### Terminal 1: Start Flask Bridge
+### 2. Install Python Dependencies
 
-```bash
-python bridge.py
-```
-
-*Listens on `http://localhost:5001` and connects the Router, Decision Engine, ChromaDB, and Persona Generator.*
-
-#### Terminal 2: Start Streamlit Dashboard
+Install all required Python libraries across all sessions:
 
 ```bash
-python -m streamlit run app.py
+python -m pip install flask streamlit streamlit-autorefresh chromadb sentence-transformers google-genai python-dotenv pytest
 ```
 
-*Opens interactive Cruise Control Console at `http://localhost:8501` featuring the live decision stream, simulator, safety test suite, and ChromaDB retrieval inspector.*
+### 3. Install Node.js Dependencies
 
-#### Terminal 3: Connect Live WhatsApp
+Install all Baileys and client libraries:
 
 ```bash
-node baileys_client.js
+npm install @whiskeysockets/baileys qrcode-terminal pino dotenv axios
 ```
-
-*Scans QR code using a secondary WhatsApp account (**Settings → Linked Devices → Link a Device**). All incoming messages will be processed and logged in real-time.*
 
 ---
 
-## ⚙️ Operating Modes
+## 🏃 Running the System
 
-Controlled dynamically via `config/mode.txt` or through the Streamlit UI toggle:
+Open separate terminal windows/tabs for each service:
 
-- `DRY_RUN`: Simulates and logs all pipeline steps without sending real WhatsApp messages. (Default)
-- `LIVE`: Actively dispatches autonomous WhatsApp replies to senders.
+### Tab 1: Start ChromaDB Vector Store
+
+Launch the local vector database server (if using standalone HTTP mode):
+
+```bash
+chroma run --path ./chroma_data --port 8000
+```
+
+*(Note: The Python Bridge also connects directly to `./chroma_data` via `PersistentClient` if running without an HTTP server).*
+
+### Tab 2: Start the Flask Bridge API
+
+Runs the Two-Brain routing, safety decision engine, RAG retrieval, and Gemini reply synthesizer on port `5001`:
+
+```bash
+python agent/bridge.py
+```
+
+### Tab 3: Start the Streamlit Live Console Feed
+
+Opens the live control console and real-time message stream at [http://localhost:8501](http://localhost:8501):
+
+```bash
+streamlit run console/app.py
+```
+
+### Tab 4: Connect WhatsApp (Baileys Client)
+
+Launches the Baileys client and initiates pairing:
+
+```bash
+node whatsapp/baileys_client.js
+```
+
+1. A pairing QR code will render directly in your terminal.
+2. Open WhatsApp on your **dedicated/secondary phone**.
+3. Navigate to **Settings** &rarr; **Linked Devices** &rarr; **Link a Device**.
+4. Scan the terminal QR code. The session will automatically save to `./auth_info_baileys` for subsequent runs.
+
+---
+
+## 🎛️ How to Use the Live Console
+
+Access the Streamlit console at **[http://localhost:8501](http://localhost:8501)** to monitor and control the agent in real time:
+
+> [!IMPORTANT]
+> **Start Every Fresh Session in DRY_RUN Mode**: Always verify decisions, safety gate reasons, and generated responses in the live stream before toggling into `LIVE` mode.
+
+### Console Features
+
+- **DRY_RUN vs LIVE Toggle**:
+  - `DRY_RUN`: Fully evaluates incoming messages, queries ChromaDB, and generates replies, but logs `[DRY_RUN] would reply to <jid>: ...` **without** sending any real messages.
+  - `LIVE`: Actively dispatches real WhatsApp messages to allowlisted contacts after the configured human-like delay.
+  - Changes are saved atomically to [config/settings.json](config/settings.json).
+
+- **Delay Range Settings**:
+  - Configure `Min Delay (s)` and `Max Delay (s)` in the sidebar.
+  - Ensures replies do not send instantly or robotically.
+
+- **Emergency Kill Switch (`🛑 KILL SWITCH`)**:
+  - Clicking the red **🛑 KILL SWITCH** button immediately generates `kill_switch.flag` in the project root.
+  - While active, a prominent banner appears on the dashboard, and the Baileys client immediately halts all message processing before calling the bridge or sending anything.
+  - Click **🟢 Clear Kill Switch & Resume** to remove the flag and resume operations safely.
+
+- **Live Decision Stream & Retrieval Trace**:
+  - Automatically refreshes every 2 seconds.
+  - Displays incoming messages, relationship badges, decision badges (`🟢 REPLY` vs `⚪ IGNORED`), and exact safety gate explanations.
+  - Expand the **🔍 ChromaDB Retrieval Trace** on any turn to inspect the top past conversation pairs retrieved to ground the response.
 
 ---
 
 ## 🧪 Testing
 
-Run automated unit and integration tests:
+Run automated unit and integration tests across the project:
 
 ```bash
+# Test the Flask Bridge endpoints and safety gates
 python -m pytest test_bridge.py
+
+# Test contact relationship resolution
 python -m pytest agent/test_router.py
+
+# Run batch test suite across synthetic test cases
+python batch_test.py
 ```
 
 ---
@@ -144,25 +189,30 @@ python -m pytest agent/test_router.py
 ```text
 WhatsApp on Cruise Control/
 ├── agent/
-│   ├── decision_engine.py    # Multi-layered safety gates & intent classification
-│   ├── generator.py          # Persona prompt builder & Gemini reply synthesizer
-│   ├── router.py             # JID relationship resolver
-│   └── test_router.py        # Router test suite
-├── ingestion/
-│   ├── embed_to_chroma.py    # Vector ingestion pipeline
-│   ├── parse_export.py       # WhatsApp chat export parser
-│   └── retrieval.py          # Multilingual vector search
+│   ├── bridge.py             # Flask API (/process) connecting the full pipeline
+│   ├── decision_engine.py    # Multi-layered safety gates, signal rules & intent check
+│   ├── generator.py          # Persona prompt assembly & Gemini reply synthesis
+│   └── router.py             # JID to relationship resolver
 ├── config/
-│   ├── mode.txt              # Active mode: DRY_RUN or LIVE
-│   └── relationship_map.json # Contact phone to relationship mappings
+│   ├── relationship_map.json # Contact phone to relationship mappings
+│   ├── settings.json         # Runtime config (dry_run, delay ranges)
+│   ├── settings.py           # Settings loader & allowlist enforcement
+│   └── mode.txt              # Session mode indicator (DRY_RUN / LIVE)
+├── console/
+│   └── app.py                # Streamlit Live Decision Feed & Control Dashboard
+├── ingestion/
+│   ├── parse_export.py       # WhatsApp chat export parser & pair extractor
+│   ├── embed_to_chroma.py    # Vector ingestion pipeline
+│   └── retrieval.py          # Multilingual vector search (ChromaDB)
 ├── persona/
-│   └── persona.json          # User identity, tone, and communication signals
+│   └── persona.json          # User identity, tone rules, Hinglish ratio & brevity
+├── whatsapp/
+│   └── baileys_client.js     # WhatsApp Web automation via @whiskeysockets/baileys
+├── chroma_data/              # Local ChromaDB persistent vector storage
 ├── logs/
-│   ├── console_feed.jsonl    # Live decision stream audit log
-│   └── decision_log.jsonl    # Historical decision gate logs
-├── app.py                    # Complete Streamlit Cruise Control dashboard
-├── console.py                # Standalone live feed viewer
-├── bridge.py                 # Flask HTTP API webhook server
-├── baileys_client.js         # Baileys WhatsApp client
-└── test_bridge.py            # Bridge integration tests
+│   ├── console_feed.jsonl    # Real-time event log for Streamlit feed
+│   └── decision_log.jsonl    # Historical safety decision audit trail
+├── kill_switch.flag          # Emergency halt flag (when active)
+├── package.json              # Node.js dependencies
+└── README.md                 # Project documentation
 ```

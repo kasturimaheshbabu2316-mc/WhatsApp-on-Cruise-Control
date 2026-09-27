@@ -113,14 +113,15 @@ def process_message():
         decision = bool(decision_res)
         reason = "passed all gates" if decision else "ignored"
 
-    # 3. If should_reply is True, call generate_reply(text, relationship) from agent/generator.py
-    reply = None
+    # 3. If should_reply is True, use rule-based reply (e.g. media_ack) or call generate_reply(text, relationship)
+    reply = getattr(decision_res, "reply", None)
     if decision:
-        try:
-            reply = generate_reply(text, relationship)
-        except Exception as exc:
-            reply = None
-            reason = f"{reason}; generation error: {exc}"
+        if not reply:
+            try:
+                reply = generate_reply(text, relationship)
+            except Exception as exc:
+                reply = None
+                reason = f"{reason}; generation error: {exc}"
 
     # 4. Purely for logging/display purposes in the console, call retrieve_similar directly
     retrieval_trace = []

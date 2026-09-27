@@ -1,11 +1,9 @@
 /**
  * WhatsApp Cruise Control - Baileys Client (whatsapp/baileys_client.js)
  * Connects to WhatsApp Web via @whiskeysockets/baileys, listens for new incoming notifications,
- * sends them to the Python Flask Bridge (/process), and logs every decision step.
+ * checks kill-switch flag and dynamic settings, forwards to the Python Flask Bridge (/process),
+ * enforces an independent allowlist, and logs every decision step.
  */
-
-// flip to false only for controlled testing against a known consenting contact — Session 4.2 replaces this with a proper toggle.
-const DRY_RUN = true;
 
 const fs = require('fs');
 const path = require('path');
@@ -18,13 +16,100 @@ const {
   DisconnectReason,
 } = require('@whiskeysockets/baileys');
 
-// Determine auth directory path: ./auth_info_baileys in the repo root
+// Determine repo root and auth directory path (./auth_info_baileys)
 const repoRoot = fs.existsSync(path.join(process.cwd(), 'package.json'))
   ? process.cwd()
   : path.resolve(__dirname, '..');
 const authDir = path.resolve(repoRoot, 'auth_info_baileys');
+const killSwitchPath = path.join(repoRoot, 'kill_switch.flag');
 
 const BRIDGE_URL = process.env.BRIDGE_URL || 'http://localhost:5001/process';
+
+/**
+ * Reads and parses config/settings.json fresh on every check.
+ * Safely falls back to defaults without throwing exceptions.
+ */
+function loadSettings() {
+  const defaultSettings = {
+    dry_run: true,
+    min_delay_seconds: 3,
+    max_delay_seconds: 12,
+  };
+
+  const candidates = [
+    path.join(repoRoot, 'config', 'settings.json'),
+    path.join(repoRoot, 'configer', 'setting.json'),
+  ];
+
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            dry_run: typeof parsed.dry_run === 'boolean' ? parsed.dry_run : defaultSettings.dry_run,
+            min_delay_seconds:
+              typeof parsed.min_delay_seconds === 'number'
+                ? parsed.min_delay_seconds
+                : defaultSettings.min_delay_seconds,
+            max_delay_seconds:
+              typeof parsed.max_delay_seconds === 'number'
+                ? parsed.max_delay_seconds
+                : defaultSettings.max_delay_seconds,
+          };
+        }
+      }
+    } catch (err) {
+      // never crash on a bad settings read
+    }
+  }
+
+  return defaultSettings;
+}
+
+/**
+ * Independent allowlist check that reads config/relationship_map.json directly.
+ * Strips the JID suffix (everything before '@') and returns true only if the contact's
+ * mapped relationship is not "unknown" and not missing entirely.
+ */
+function enforceAllowlist(jid) {
+  if (!jid || typeof jid !== 'string') return false;
+
+  const normalized = jid.trim();
+  if (!normalized) return false;
+
+  // Group chats are not allowlisted for autonomous 1-on-1 direct replies
+  if (normalized.endsWith('@g.us')) return false;
+
+  const number = normalized.split('@', 1)[0];
+  if (!number) return false;
+
+  const mapPaths = [
+    path.join(repoRoot, 'config', 'relationship_map.json'),
+    path.join(repoRoot, 'relationship_map.json'),
+  ];
+
+  let relationshipMap = {};
+  for (const p of mapPaths) {
+    try {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          relationshipMap = parsed;
+          break;
+        }
+      }
+    } catch (err) {}
+  }
+
+  const rel = relationshipMap[number];
+  if (!rel || typeof rel !== 'string') return false;
+
+  const cleanRel = rel.trim().toLowerCase();
+  return cleanRel !== 'unknown' && cleanRel !== '';
+}
 
 /**
  * Helper to extract contextInfo safely from any message wrapper.
@@ -91,8 +176,10 @@ function extractTextAndType(message) {
 /**
  * Generates a random delay between min and max milliseconds.
  */
-function getRandomDelay(min = 3000, max = 8000) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomDelay(min = 3000, max = 12000) {
+  const lower = Math.min(min, max);
+  const upper = Math.max(min, max);
+  return Math.floor(Math.random() * (upper - lower + 1)) + lower;
 }
 
 /**
@@ -134,9 +221,10 @@ async function startBaileysClient() {
       }
 
       if (connection === 'open') {
+        const initSettings = loadSettings();
         console.log('[ROUTE] WhatsApp connection established successfully!');
         console.log(`[ROUTE] Target Bridge URL: ${BRIDGE_URL}`);
-        console.log(`[DRY_RUN] Mode is set to DRY_RUN = ${DRY_RUN}`);
+        console.log(`[SETTINGS] Loaded: dry_run=${initSettings.dry_run}, delays=${initSettings.min_delay_seconds}s-${initSettings.max_delay_seconds}s`);
         if (reconnectTimer) {
           clearTimeout(reconnectTimer);
           reconnectTimer = null;
@@ -205,6 +293,15 @@ async function startBaileysClient() {
           continue;
         }
 
+        // Check Kill Switch flag before doing ANY processing
+        if (fs.existsSync(killSwitchPath)) {
+          console.log('[KILL SWITCH] active, skipping all processing');
+          continue;
+        }
+
+        // Read dynamic settings fresh on each message
+        const currentSettings = loadSettings();
+
         const { text, message_type } = extractTextAndType(rawMessage);
         const is_forwarded = extractIsForwarded(rawMessage);
 
@@ -245,12 +342,30 @@ async function startBaileysClient() {
         if (shouldReply && replyText && String(replyText).trim().length > 0) {
           console.log(`[REPLY] Reply text: "${replyText}"`);
 
-          if (DRY_RUN) {
+          if (currentSettings.dry_run) {
             console.log(`[DRY_RUN] would reply to ${remoteJid}: "${replyText}"`);
           } else {
-            const delayMs = getRandomDelay(3000, 8000);
-            console.log(`[SEND] Waiting ${Math.round(delayMs / 1000)}s human-like delay before sending...`);
+            // Independent allowlist safety check immediately before sending
+            if (!enforceAllowlist(remoteJid)) {
+              console.log('[BLOCKED] failed independent allowlist check');
+              continue;
+            }
+
+            const minDelay = Math.max(0, currentSettings.min_delay_seconds || 3) * 1000;
+            const maxDelay = Math.max(minDelay, (currentSettings.max_delay_seconds || 12) * 1000);
+            const delayMs = getRandomDelay(minDelay, maxDelay);
+            console.log(`[SEND] Waiting ${Math.round(delayMs / 1000)}s dynamic delay before sending...`);
             await sleep(delayMs);
+
+            // Double check kill switch and allowlist immediately before dispatch
+            if (fs.existsSync(killSwitchPath)) {
+              console.log('[KILL SWITCH] active, skipping all processing');
+              continue;
+            }
+            if (!enforceAllowlist(remoteJid)) {
+              console.log('[BLOCKED] failed independent allowlist check');
+              continue;
+            }
 
             try {
               await sock.sendMessage(remoteJid, { text: replyText });
@@ -284,5 +399,6 @@ module.exports = {
   startBaileysClient,
   extractTextAndType,
   extractIsForwarded,
-  DRY_RUN,
+  loadSettings,
+  enforceAllowlist,
 };
