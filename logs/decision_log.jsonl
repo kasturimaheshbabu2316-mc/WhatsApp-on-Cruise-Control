@@ -90,3 +90,11 @@
 {"timestamp": "2026-09-27T07:58:57.977191+00:00", "message": "Are you free for dinner tonight?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
 {"timestamp": "2026-09-27T07:59:08.859223+00:00", "message": "Rey em chesthunnav ra?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
 {"timestamp": "2026-09-27T07:59:15.288763+00:00", "message": "Want to catch a movie this weekend?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
+{"timestamp": "2026-09-27T08:06:47.684409+00:00", "message": "I already sent this update.", "relationship": "friend", "decision": "ignore", "reason": "own message"}
+{"timestamp": "2026-09-27T08:06:47.687005+00:00", "message": "What time are we meeting?", "relationship": "group", "decision": "ignore", "reason": "group chat, not allowlisted"}
+{"timestamp": "2026-09-27T08:06:47.689260+00:00", "message": "Hello, are you available?", "relationship": "unknown", "decision": "ignore", "reason": "sender not in allowlist"}
+{"timestamp": "2026-09-27T08:06:47.691176+00:00", "message": "", "relationship": "friend", "decision": "ignore", "reason": "media-only, no text to ground a reply"}
+{"timestamp": "2026-09-27T08:06:47.693546+00:00", "message": "Please share this important update.", "relationship": "friend", "decision": "ignore", "reason": "forwarded content, not a real question"}
+{"timestamp": "2026-09-27T08:06:47.697354+00:00", "message": "thanks", "relationship": "friend", "decision": "ignore", "reason": "low-signal ack, no reply needed"}
+{"timestamp": "2026-09-27T08:06:49.926788+00:00", "message": "Can you send me 5000 rupees?", "relationship": "friend", "decision": "ignore", "reason": "needs human review: money or serious/ambiguous intent"}
+{"timestamp": "2026-09-27T08:06:52.846829+00:00", "message": "Are you free for dinner tonight?", "relationship": "friend", "decision": "reply", "reason": "passed all gates"}
